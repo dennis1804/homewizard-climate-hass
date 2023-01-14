@@ -5,6 +5,10 @@ import time
 from homewizard_climate_websocket.model.climate_device_state import (
     HomeWizardClimateDeviceState,
 )
+from homewizard_climate_websocket.model.climate_device import (
+    HomeWizardClimateDeviceType,
+)
+
 from homewizard_climate_websocket.ws.hw_websocket import HomeWizardClimateWebSocket
 
 from homeassistant.components.climate import (
@@ -47,9 +51,12 @@ class HomeWizardClimateEntity(ClimateEntity):
         self._device_web_socket = device_web_socket
         self._device_web_socket.set_on_state_change(self.on_device_state_change)
         self._hass = hass
+        self._isIR = False
         self._logger = logging.getLogger(
             f"{__name__}.{self._device_web_socket.device.identifier}"
         )
+        if self._device_web_socket.device.type == HomeWizardClimateDeviceType.INFRAREDHEATER:
+            self._isIR = True
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -86,6 +93,10 @@ class HomeWizardClimateEntity(ClimateEntity):
 
     @property
     def supported_features(self) -> ClimateEntityFeature:
+        if self._isIR:
+            return (
+                ClimateEntityFeature.TARGET_TEMPERATURE
+            )
         """Return the list of supported features."""
         return (
             ClimateEntityFeature.TARGET_TEMPERATURE
@@ -109,6 +120,10 @@ class HomeWizardClimateEntity(ClimateEntity):
 
     @property
     def hvac_mode(self):
+        if self._isIR:
+            if self._device_web_socket.last_state.power_on:
+                return HVACMode.HEAT
+            return HVACMode.OFF
         """Return hvac target hvac state."""
         if self._device_web_socket.last_state.power_on:
             result = (
@@ -123,6 +138,8 @@ class HomeWizardClimateEntity(ClimateEntity):
 
     @property
     def hvac_modes(self):
+        if self._isIR:
+            return [HVACMode.HEAT, HVACMode.OFF]
         """Return the list of available operation modes."""
         return [HVACMode.HEAT, HVACMode.COOL, HVACMode.OFF]
 
@@ -168,6 +185,8 @@ class HomeWizardClimateEntity(ClimateEntity):
         )
 
     def set_fan_mode(self, fan_mode: str) -> None:
+        if self._isIR:
+            raise NotImplementedError()
         """Set fan mode."""
         if fan_mode == FAN_ON:
             self._device_web_socket.turn_on()
