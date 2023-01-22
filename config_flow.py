@@ -5,7 +5,7 @@ from collections.abc import Mapping
 import logging
 from typing import Any
 
-from homewizard_climate_websocket.api.api import InvalidHomewizardAuth
+from homewizard_climate_ws.api.api import InvalidHomewizardAuth
 import voluptuous as vol
 
 from homeassistant import config_entries

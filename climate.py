@@ -2,14 +2,14 @@
 import logging
 import time
 
-from homewizard_climate_websocket.model.climate_device_state import (
+from homewizard_climate_ws.model.climate_device_state import (
     HomeWizardClimateDeviceState,
 )
-from homewizard_climate_websocket.model.climate_device import (
+from homewizard_climate_ws.model.climate_device import (
     HomeWizardClimateDeviceType,
 )
 
-from homewizard_climate_websocket.ws.hw_websocket import HomeWizardClimateWebSocket
+from homewizard_climate_ws.ws.hw_websocket import HomeWizardClimateWebSocket
 
 from homeassistant.components.climate import (
     FAN_HIGH,

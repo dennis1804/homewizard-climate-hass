@@ -3,12 +3,12 @@ from __future__ import annotations
 
 import logging
 
-from homewizard_climate_websocket.api.api import (
+from homewizard_climate_ws.api.api import (
     HomeWizardClimateApi,
     InvalidHomewizardAuth,
 )
-from homewizard_climate_websocket.model.climate_device import HomeWizardClimateDevice
-from homewizard_climate_websocket.ws.hw_websocket import HomeWizardClimateWebSocket
+from homewizard_climate_ws.model.climate_device import HomeWizardClimateDevice
+from homewizard_climate_ws.ws.hw_websocket import HomeWizardClimateWebSocket
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
