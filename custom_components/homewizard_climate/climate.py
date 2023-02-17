@@ -21,9 +21,9 @@ from homeassistant.components.climate import (
     SWING_OFF,
     ClimateEntity,
     ClimateEntityFeature,
-    COMFORT,
-    SLEEP,
-    ECO,
+    PRESET_COMFORT,
+    PRESET_SLEEP,
+    PRESET_ECO,
     HVACMode,
 )
 from homeassistant.config_entries import ConfigEntry
@@ -101,13 +101,13 @@ class HomeWizardClimateEntity(ClimateEntity):
     @property
     def preset_mode(self):
         """Return fan mode of the AC this group belongs to."""
-        return COMFORT
+        return PRESET_COMFORT
     
 
     @property
     def fan_modes(self):
         """Return the list of available fan modes."""
-        return [COMFORT, SLEEP, ECO]
+        return [PRESET_COMFORT, PRESET_SLEEP, PRESET_ECO]
 
     @property
     def supported_features(self) -> ClimateEntityFeature:
@@ -268,11 +268,11 @@ class HomeWizardClimateEntity(ClimateEntity):
     def set_preset_mode(self, preset_mode: str) -> None:
         """Not implemented."""
         if self._isFAN:
-            if preset_mode == ECO:
+            if preset_mode == PRESET_ECO:
                 self._device_web_socket.set_mode('natural')
-            elif preset_mode == SLEEP:
+            elif preset_mode == PRESET_SLEEP:
                 self._device_web_socket.set_mode('sleep')
-            elif preset_mode == COMFORT:
+            elif preset_mode == PRESET_COMFORT:
                 self._device_web_socket.set_mode('normal')
 
         raise NotImplementedError()
