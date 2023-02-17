@@ -21,6 +21,9 @@ from homeassistant.components.climate import (
     SWING_OFF,
     ClimateEntity,
     ClimateEntityFeature,
+    COMFORT,
+    SLEEP,
+    ECO,
     HVACMode,
 )
 from homeassistant.config_entries import ConfigEntry
@@ -52,11 +55,14 @@ class HomeWizardClimateEntity(ClimateEntity):
         self._device_web_socket.set_on_state_change(self.on_device_state_change)
         self._hass = hass
         self._isIR = False
+        self._isFAN = False
         self._logger = logging.getLogger(
             f"{__name__}.{self._device_web_socket.device.identifier}"
         )
         if self._device_web_socket.device.type == HomeWizardClimateDeviceType.INFRAREDHEATER:
             self._isIR = True
+        if self._device_web_socket.device.type == HomeWizardClimateDeviceType.INFRAREDHEATER:
+            self._isFAN = True
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -85,11 +91,23 @@ class HomeWizardClimateEntity(ClimateEntity):
     def fan_mode(self):
         """Return fan mode of the AC this group belongs to."""
         return FAN_ON
+    
 
     @property
     def fan_modes(self):
         """Return the list of available fan modes."""
         return [FAN_ON, FAN_OFF, FAN_LOW, FAN_MEDIUM, FAN_HIGH]
+    
+    @property
+    def preset_mode(self):
+        """Return fan mode of the AC this group belongs to."""
+        return COMFORT
+    
+
+    @property
+    def fan_modes(self):
+        """Return the list of available fan modes."""
+        return [COMFORT, SLEEP, ECO]
 
     @property
     def supported_features(self) -> ClimateEntityFeature:
@@ -187,6 +205,20 @@ class HomeWizardClimateEntity(ClimateEntity):
     def set_fan_mode(self, fan_mode: str) -> None:
         if self._isIR:
             raise NotImplementedError()
+
+        if self._isFAN:
+            if fan_mode == FAN_ON:
+                self._device_web_socket.turn_on()
+            elif fan_mode == FAN_OFF:
+                self._device_web_socket.turn_off()
+            elif fan_mode == FAN_LOW:
+                self._device_web_socket.set_speed(1)
+            elif fan_mode == FAN_MEDIUM:
+                self._device_web_socket.set_speed(2)
+            elif fan_mode == FAN_HIGH:
+                self._device_web_socket.set_speed(3)
+            return
+
         """Set fan mode."""
         if fan_mode == FAN_ON:
             self._device_web_socket.turn_on()
@@ -235,6 +267,14 @@ class HomeWizardClimateEntity(ClimateEntity):
 
     def set_preset_mode(self, preset_mode: str) -> None:
         """Not implemented."""
+        if self._isFAN:
+            if preset_mode == ECO:
+                self._device_web_socket.set_mode('natural')
+            elif preset_mode == SLEEP:
+                self._device_web_socket.set_mode('sleep')
+            elif preset_mode == COMFORT:
+                self._device_web_socket.set_mode('normal')
+
         raise NotImplementedError()
 
     def turn_aux_heat_on(self) -> None:
