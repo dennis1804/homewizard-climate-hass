@@ -61,7 +61,7 @@ class HomeWizardClimateEntity(ClimateEntity):
         )
         if self._device_web_socket.device.type == HomeWizardClimateDeviceType.INFRAREDHEATER:
             self._isIR = True
-        if self._device_web_socket.device.type == HomeWizardClimateDeviceType.INFRAREDHEATER:
+        if self._device_web_socket.device.type == HomeWizardClimateDeviceType.FAN:
             self._isFAN = True
 
     @property
