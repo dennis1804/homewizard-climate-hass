@@ -105,7 +105,7 @@ class HomeWizardClimateEntity(ClimateEntity):
     
 
     @property
-    def fan_modes(self):
+    def preset_modes(self):
         """Return the list of available fan modes."""
         return [PRESET_COMFORT, PRESET_SLEEP, PRESET_ECO]
 
@@ -114,6 +114,12 @@ class HomeWizardClimateEntity(ClimateEntity):
         if self._isIR:
             return (
                 ClimateEntityFeature.TARGET_TEMPERATURE
+            )
+        if self._isFAN:
+            return (
+                ClimateEntityFeature.FAN_MODE
+                | ClimateEntityFeature.SWING_MODE
+                | ClimateEntityFeature.PRESET_MODE
             )
         """Return the list of supported features."""
         return (
@@ -158,6 +164,8 @@ class HomeWizardClimateEntity(ClimateEntity):
     def hvac_modes(self):
         if self._isIR:
             return [HVACMode.HEAT, HVACMode.OFF]
+        if self._isFAN:
+            return [HVACMode.COOL, HVACMode.OFF]
         """Return the list of available operation modes."""
         return [HVACMode.HEAT, HVACMode.COOL, HVACMode.OFF]
 
