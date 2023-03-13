@@ -11,6 +11,7 @@ after that you can add the integration to Homeassistant and input your username 
 - Fan Heater
 - IR Panel
 - Glass panel Heater
+- Fan
 
 
 ## my device isn't supported
