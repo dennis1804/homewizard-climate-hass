@@ -17,6 +17,8 @@ from homeassistant.components.climate import (
     FAN_MEDIUM,
     FAN_OFF,
     FAN_ON,
+    PRESET_BOOST,
+    PRESET_ECO,
     SWING_HORIZONTAL,
     SWING_OFF,
     ClimateEntity,
@@ -56,6 +58,7 @@ class HomeWizardClimateEntity(ClimateEntity):
         self._hass = hass
         self._isIR = False
         self._isFAN = False
+        self._isHEATER = False
         self._logger = logging.getLogger(
             f"{__name__}.{self._device_web_socket.device.identifier}"
         )
@@ -63,6 +66,8 @@ class HomeWizardClimateEntity(ClimateEntity):
             self._isIR = True
         if self._device_web_socket.device.type == HomeWizardClimateDeviceType.FAN:
             self._isFAN = True
+        if self._device_web_socket.device.type == HomeWizardClimateDeviceType.HEATER:
+            self._isHEATER = True
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -91,29 +96,42 @@ class HomeWizardClimateEntity(ClimateEntity):
     def fan_mode(self):
         """Return fan mode of the AC this group belongs to."""
         return FAN_ON
-    
 
     @property
     def fan_modes(self):
         """Return the list of available fan modes."""
         return [FAN_ON, FAN_OFF, FAN_LOW, FAN_MEDIUM, FAN_HIGH]
-    
+
     @property
     def preset_mode(self):
-        """Return fan mode of the AC this group belongs to."""
-        return PRESET_COMFORT
-    
+        """Return preset mode."""
+        if self._isFAN:
+            return PRESET_COMFORT
+        if self._isHEATER:
+            mode = self._device_web_socket.last_state.mode
+            if mode == "low":
+                return PRESET_ECO
+            elif mode == "high":
+                return PRESET_BOOST
+        raise NotImplementedError()
 
     @property
     def preset_modes(self):
-        """Return the list of available fan modes."""
-        return [PRESET_COMFORT, PRESET_SLEEP, PRESET_ECO]
+        if self._isFAN:
+            return [PRESET_COMFORT, PRESET_SLEEP, PRESET_ECO]
+        if self._isHEATER:
+            return [PRESET_ECO, PRESET_BOOST]
 
     @property
     def supported_features(self) -> ClimateEntityFeature:
         if self._isIR:
             return (
                 ClimateEntityFeature.TARGET_TEMPERATURE
+            )
+        if self._isHEATER:
+            return (
+                ClimateEntityFeature.TARGET_TEMPERATURE
+                | ClimateEntityFeature.PRESET_MODE
             )
         if self._isFAN:
             return (
@@ -144,7 +162,7 @@ class HomeWizardClimateEntity(ClimateEntity):
 
     @property
     def hvac_mode(self):
-        if self._isIR:
+        if self._isIR or self._isHEATER:
             if self._device_web_socket.last_state.power_on:
                 return HVACMode.HEAT
             return HVACMode.OFF
@@ -162,7 +180,7 @@ class HomeWizardClimateEntity(ClimateEntity):
 
     @property
     def hvac_modes(self):
-        if self._isIR:
+        if self._isIR or self._isHEATER:
             return [HVACMode.HEAT, HVACMode.OFF]
         if self._isFAN:
             return [HVACMode.COOL, HVACMode.OFF]
@@ -211,7 +229,7 @@ class HomeWizardClimateEntity(ClimateEntity):
         )
 
     def set_fan_mode(self, fan_mode: str) -> None:
-        if self._isIR:
+        if self._isIR or self._isHEATER:
             raise NotImplementedError()
 
         if self._isFAN:
@@ -274,7 +292,7 @@ class HomeWizardClimateEntity(ClimateEntity):
             self._device_web_socket.turn_off_oscillation()
 
     def set_preset_mode(self, preset_mode: str) -> None:
-        """Not implemented."""
+        """Set preset mode."""
         if self._isFAN:
             if preset_mode == PRESET_ECO:
                 self._device_web_socket.set_mode('natural')
@@ -282,8 +300,13 @@ class HomeWizardClimateEntity(ClimateEntity):
                 self._device_web_socket.set_mode('sleep')
             elif preset_mode == PRESET_COMFORT:
                 self._device_web_socket.set_mode('normal')
-
-        raise NotImplementedError()
+        elif self._isHEATER:
+            if preset_mode == PRESET_ECO:
+                self._device_web_socket.set_mode("low")
+            elif preset_mode == PRESET_BOOST:
+                self._device_web_socket.set_mode("high")
+        else:
+            raise NotImplementedError()
 
     def turn_aux_heat_on(self) -> None:
         """Not implemented."""
