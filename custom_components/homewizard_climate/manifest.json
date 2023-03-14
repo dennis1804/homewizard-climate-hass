@@ -5,6 +5,6 @@
   "documentation": "https://www.home-assistant.io/integrations/homewizard_climate",
   "requirements": ["homewizard-climate-ws==0.0.15"],
   "codeowners": ["@mepla", "@dennis1804"],
-  "version": "1.0.2",
+  "version": "1.0.3",
   "iot_class": "cloud_push"
 }
