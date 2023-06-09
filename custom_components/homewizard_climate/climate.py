@@ -59,7 +59,7 @@ class HomeWizardClimateEntity(ClimateEntity):
         self._isIR = False
         self._isFAN = False
         self._isHEATER = False
-        self.__isDEHUMID = False
+        self._isDEHUMID = False
         self._logger = logging.getLogger(
             f"{__name__}.{self._device_web_socket.device.identifier}"
         )
@@ -95,10 +95,6 @@ class HomeWizardClimateEntity(ClimateEntity):
         """Return the current temperature."""
         return self._device_web_socket.last_state.current_temperature
 
-    def current_temperature(self) -> int:
-        """Return the current temperature."""
-        return self._device_web_socket.last_state.current_temperature
-
     @property
     def fan_mode(self):
         """Return fan mode of the AC this group belongs to."""
@@ -116,6 +112,8 @@ class HomeWizardClimateEntity(ClimateEntity):
         """Return preset mode."""
         if self._isFAN:
             return PRESET_COMFORT
+        if self._isDEHUMID:
+            return self._device_web_socket.last_state.mode
         if self._isHEATER:
             mode = self._device_web_socket.last_state.mode
             if mode == "low":
@@ -236,15 +234,19 @@ class HomeWizardClimateEntity(ClimateEntity):
         return self.target_temperature_high
 
     @property
-    def target_humidity(self) -> float:
+    def humidity(self) -> float:
         """Return the current target temperature."""
-        return self._device_web_socket.last_state.target_humidity
+        if self._isDEHUMID:
+            return self._device_web_socket.last_state.target_humidity
+        raise NotImplementedError()
 
-    def set_target_humidity(self, target_humidity) -> None:
+    def set_humidity(self, target_humidity) -> None:
         """Set the current target humidity."""
-        self._device_web_socket.set_target_humidity(
-            int(target_humidity)
-        )
+        if self._isDEHUMID:
+            return self._device_web_socket.set_target_humidity(
+                int(target_humidity)
+            )
+        raise NotImplementedError()
 
     @property
     def target_temperature(self) -> float:
@@ -253,6 +255,8 @@ class HomeWizardClimateEntity(ClimateEntity):
 
     def set_temperature(self, **kwargs) -> None:
         """Set the current target temperature."""
+        if self._isDEHUMID:
+            raise NotImplementedError()
         self._device_web_socket.set_target_temperature(
             int(kwargs.get(ATTR_TEMPERATURE, "0"))
         )
@@ -353,9 +357,9 @@ class HomeWizardClimateEntity(ClimateEntity):
         """Not implemented."""
         raise NotImplementedError()
 
-    def set_humidity(self, humidity: int) -> None:
-        """Not implemented."""
-        raise NotImplementedError()
+    # def set_humidity(self, humidity: int) -> None:
+    #     """Not implemented."""
+    #     raise NotImplementedError()
 
     def on_device_state_change(
         self, state: HomeWizardClimateDeviceState, diff: str
