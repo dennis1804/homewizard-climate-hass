@@ -20,6 +20,7 @@ from homeassistant.components.climate import (
     PRESET_BOOST,
     PRESET_ECO,
     SWING_HORIZONTAL,
+    SWING_ON,
     SWING_OFF,
     ClimateEntity,
     ClimateEntityFeature,
@@ -103,6 +104,8 @@ class HomeWizardClimateEntity(ClimateEntity):
     @property
     def fan_modes(self):
         """Return the list of available fan modes."""
+        if self._isDEHUMID:
+            return [FAN_LOW, FAN_HIGH]
         if self._isFAN:
             return [FAN_LOW, FAN_MEDIUM, FAN_HIGH]
         return [FAN_ON, FAN_OFF, FAN_LOW, FAN_MEDIUM, FAN_HIGH]
@@ -164,12 +167,22 @@ class HomeWizardClimateEntity(ClimateEntity):
 
     @property
     def swing_modes(self) -> list[str]:
+        if self._isDEHUMID:
+            return [SWING_ON, SWING_OFF]
         """Return all possible swing modes."""
         return [SWING_HORIZONTAL, SWING_OFF]
 
     @property
     def swing_mode(self) -> str:
         """Return current swing mode."""
+
+        if self._isDEHUMID:
+            return (
+            SWING_ON
+            if self._device_web_socket.last_state.swing
+            else SWING_OFF
+        )
+
         return (
             SWING_HORIZONTAL
             if self._device_web_socket.last_state.oscillate
@@ -198,7 +211,7 @@ class HomeWizardClimateEntity(ClimateEntity):
     def hvac_modes(self):
         if self._isIR or self._isHEATER:
             return [HVACMode.HEAT, HVACMode.OFF]
-        if self._isFAN:
+        if self._isFAN or self._isDEHUMID:
             return [HVACMode.COOL, HVACMode.OFF]
         """Return the list of available operation modes."""
         return [HVACMode.HEAT, HVACMode.COOL, HVACMode.OFF]
@@ -234,7 +247,7 @@ class HomeWizardClimateEntity(ClimateEntity):
         return self.target_temperature_high
 
     @property
-    def humidity(self) -> float:
+    def target_humidity(self) -> float:
         """Return the current target temperature."""
         if self._isDEHUMID:
             return self._device_web_socket.last_state.target_humidity
@@ -251,6 +264,8 @@ class HomeWizardClimateEntity(ClimateEntity):
     @property
     def target_temperature(self) -> float:
         """Return the current target temperature."""
+        if self._isDEHUMID:
+            raise NotImplementedError()
         return self._device_web_socket.last_state.target_temperature
 
     def set_temperature(self, **kwargs) -> None:
