@@ -97,6 +97,11 @@ class HomeWizardClimateEntity(ClimateEntity):
         return self._device_web_socket.last_state.current_temperature
 
     @property
+    def current_humidity(self) -> int:
+        """Return the current temperature."""
+        return self._device_web_socket.last_state.current_humidity
+
+    @property
     def fan_mode(self):
         """Return fan mode of the AC this group belongs to."""
         return FAN_ON
