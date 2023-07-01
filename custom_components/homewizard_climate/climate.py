@@ -104,7 +104,11 @@ class HomeWizardClimateEntity(ClimateEntity):
     @property
     def fan_mode(self):
         """Return fan mode of the AC this group belongs to."""
-        return FAN_ON
+        return (
+            FAN_LOW
+            if self._device_web_socket.last_state.fan_speed == 'low'
+            else FAN_HIGH
+        )
 
     @property
     def fan_modes(self):
@@ -183,10 +187,10 @@ class HomeWizardClimateEntity(ClimateEntity):
 
         if self._isDEHUMID:
             return (
-            SWING_ON
-            if self._device_web_socket.last_state.swing
-            else SWING_OFF
-        )
+                SWING_ON
+                if self._device_web_socket.last_state.swing
+                else SWING_OFF
+            )
 
         return (
             SWING_HORIZONTAL
