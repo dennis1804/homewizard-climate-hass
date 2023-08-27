@@ -209,6 +209,12 @@ class HomeWizardClimateEntity(ClimateEntity):
             if self._device_web_socket.last_state.power_on:
                 return HVACMode.HEAT
             return HVACMode.OFF
+        if self._isAIRCOOLER:
+            if self._device_web_socket.last_state.power_on:
+                if self._device_web_socket.last_state.cool:
+                    return HVACMode.COOL
+                return HVACMode.FAN_ONLY
+            return HVACMode.OFF
         """Return hvac target hvac state."""
         if self._device_web_socket.last_state.power_on:
             result = (
@@ -225,8 +231,10 @@ class HomeWizardClimateEntity(ClimateEntity):
     def hvac_modes(self):
         if self._isIR or self._isHEATER:
             return [HVACMode.HEAT, HVACMode.OFF]
-        if self._isFAN or self._isDEHUMID or self._isAIRCOOLER:
+        if self._isFAN or self._isDEHUMID:
             return [HVACMode.COOL, HVACMode.OFF]
+        if self._isAIRCOOLER:
+            return [HVACMode.COOL, HVACMode.FAN_ONLY, HVACMode.OFF]
         """Return the list of available operation modes."""
         return [HVACMode.HEAT, HVACMode.COOL, HVACMode.OFF]
 
@@ -325,6 +333,15 @@ class HomeWizardClimateEntity(ClimateEntity):
 
     def set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set HVAC mode."""
+        if self._isAIRCOOLER:
+            if hvac_mode == HVACMode.OFF:
+                self._device_web_socket.turn_off()
+            if hvac_mode != HVACMode.OFF:
+                self._device_web_socket.turn_on()
+                if hvac_mode == HVACMode.FAN_ONLY:
+                    self._device_web_socket.turn_off_cool()  
+                if hvac_mode == HVACMode.COOL:
+                    self._device_web_socket.turn_on_cool()   
         if hvac_mode == HVACMode.HEAT:
             if not self._device_web_socket.last_state.power_on:
                 self._device_web_socket.turn_on()
