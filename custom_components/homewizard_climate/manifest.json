@@ -3,8 +3,8 @@
   "name": "Homewizard Climate",
   "config_flow": true,
   "documentation": "https://www.home-assistant.io/integrations/homewizard_climate",
-  "requirements": ["homewizard-climate-ws==0.0.24"],
+  "requirements": ["homewizard-climate-ws==0.0.26"],
   "codeowners": ["@mepla", "@dennis1804"],
-  "version": "1.0.6",
+  "version": "1.0.7",
   "iot_class": "cloud_push"
 }
